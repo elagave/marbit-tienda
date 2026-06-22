@@ -37,6 +37,9 @@
     .auth-zona { display: flex; align-items: center; gap: 10px; margin-right: 4px; }
     .btn-cuenta { background: none; border: 1px solid var(--linea); color: var(--tinta); border-radius: 999px; padding: 9px 15px; font-weight: 600; font-size: 13.5px; cursor: pointer; font-family: var(--texto); }
     .btn-cuenta:hover { border-color: var(--esmeralda); color: var(--esmeralda-osc); }
+    .btn-cuenta-2 { background: var(--esmeralda); border: 1px solid var(--esmeralda); color: #fff; border-radius: 999px; padding: 9px 15px; font-weight: 700; font-size: 13.5px; cursor: pointer; font-family: var(--texto); }
+    .btn-cuenta-2:hover { background: var(--esmeralda-osc); border-color: var(--esmeralda-osc); }
+    @media (max-width: 480px) { .auth-zona { gap: 6px; } .btn-cuenta, .btn-cuenta-2 { padding: 8px 11px; font-size: 12.5px; } }
     .cuenta-nom { font-size: 13.5px; font-weight: 600; color: var(--tinta); }
     .cuenta-nom span { color: var(--esmeralda-osc); }
     .btn-salir { background: none; border: 0; color: var(--gris); font-size: 12.5px; cursor: pointer; font-family: var(--texto); text-decoration: underline; }
@@ -594,8 +597,11 @@
         z.innerHTML = '<span class="cuenta-nom">Hola, <span>' + escapar(nombre) + '</span></span><button class="btn-salir" id="salirBtn">Cerrar sesión</button>';
         document.getElementById('salirBtn').addEventListener('click', cerrarSesion);
       } else {
-        z.innerHTML = '<button class="btn-cuenta" id="loginBtn">Iniciar sesión</button>';
-        document.getElementById('loginBtn').addEventListener('click', () => abrirAuth(false));
+        z.innerHTML =
+          '<button class="btn-cuenta-2" id="registroBtn">Crear cuenta</button>' +
+          '<button class="btn-cuenta" id="loginBtn">Iniciar sesión</button>';
+        document.getElementById('loginBtn').addEventListener('click', () => abrirAuth(false, 'login'));
+        document.getElementById('registroBtn').addEventListener('click', () => abrirAuth(false, 'registro'));
       }
     }
 
@@ -608,8 +614,8 @@
       } catch { /* sin conexión: conservamos la sesión local */ }
     }
 
-    function abrirAuth(continuarCheckout) {
-      auth.modo = 'login'; auth.error = ''; auth.cargando = false; auth.continuar = !!continuarCheckout;
+    function abrirAuth(continuarCheckout, modoInicial) {
+      auth.modo = modoInicial === 'registro' ? 'registro' : 'login'; auth.error = ''; auth.cargando = false; auth.continuar = !!continuarCheckout;
       document.getElementById('authCapa').classList.add('abierto');
       renderAuth();
     }
