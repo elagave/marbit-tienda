@@ -194,6 +194,14 @@
 
     @media (min-width: 560px) { .marca-tag { display: block; } }
     @media (max-width: 620px) { .modal { grid-template-columns: 1fr; } .modal-img { min-height: 220px; } }
+    .anuncio-capa { position: fixed; inset: 0; background: rgba(15,23,42,.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 18px; }
+    .anuncio-caja { background: #fff; border-radius: 18px; max-width: 420px; width: 100%; overflow: hidden; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+    .anuncio-x { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(0,0,0,.45); color: #fff; font-size: 16px; cursor: pointer; z-index: 2; }
+    .anuncio-img { width: 100%; display: block; }
+    .anuncio-cuerpo { padding: 18px 20px 22px; text-align: center; }
+    .anuncio-tit { font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin: 0 0 8px; color: var(--marino); }
+    .anuncio-txt { font-size: 14.5px; color: #475569; margin: 0; line-height: 1.5; white-space: pre-line; }
+    .anuncio-btn { display: inline-block; margin-top: 14px; background: var(--esmeralda); color: #fff; text-decoration: none; padding: 10px 22px; border-radius: 10px; font-weight: 700; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -330,6 +338,35 @@
 
       await cargarCatalogo(true);
       renderCarrito();
+      mostrarAnuncio();
+    }
+
+    // Anuncio emergente (una vez por visitante hasta que cambie)
+    function mostrarAnuncio() {
+      const a = estado.config && estado.config.anuncio;
+      if (!a || (!a.imagen && !a.titulo && !a.texto)) return;
+      try { if (localStorage.getItem('marbit_anuncio') === String(a.version)) return; } catch (e) {}
+      const capa = document.createElement('div');
+      capa.className = 'anuncio-capa';
+      capa.innerHTML =
+        '<div class="anuncio-caja">' +
+          '<button class="anuncio-x" aria-label="Cerrar">✕</button>' +
+          (a.imagen ? '<img class="anuncio-img" src="' + escapar(a.imagen) + '" alt="anuncio">' : '') +
+          ((a.titulo || a.texto || a.enlace) ?
+            '<div class="anuncio-cuerpo">' +
+              (a.titulo ? '<h3 class="anuncio-tit">' + escapar(a.titulo) + '</h3>' : '') +
+              (a.texto ? '<p class="anuncio-txt">' + escapar(a.texto) + '</p>' : '') +
+              (a.enlace ? '<a class="anuncio-btn" href="' + escapar(a.enlace) + '" target="_blank" rel="noopener">Ver más</a>' : '') +
+            '</div>'
+          : '') +
+        '</div>';
+      document.body.appendChild(capa);
+      function cerrar() {
+        try { localStorage.setItem('marbit_anuncio', String(a.version)); } catch (e) {}
+        capa.remove();
+      }
+      capa.querySelector('.anuncio-x').addEventListener('click', cerrar);
+      capa.addEventListener('click', (e) => { if (e.target === capa) cerrar(); });
     }
 
     async function cargarCatalogo(reset) {
