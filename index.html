@@ -215,7 +215,7 @@
   <section class="banda">
     <div class="banda-int">
       <h1>Tienda en línea</h1>
-      <p>Cómputo, electrónica y accesorios en Valle de Bravo. Recoge en tienda o recibe a domicilio :-).</p>
+      <p>Cómputo, electrónica y accesorios en Valle de Bravo. Recoge en tienda o recibe a domicilio.</p>
       <div class="buscador">
         <input id="busqueda" type="search" placeholder="Buscar productos…" autocomplete="off" />
       </div>
@@ -228,7 +228,7 @@
   </main>
 
   <footer class="pie">
-    Marbit · Porfirio Díaz 101, Col. Centro, Valle de Bravo, Edo. de México :-)· <span id="pieWa"></span>
+    Marbit · Porfirio Díaz 101, Col. Centro, Valle de Bravo, Edo. de México · <span id="pieWa"></span>
   </footer>
 
   <!-- Carrito -->
@@ -308,6 +308,7 @@
       renderAuthZona();
       verificarSesion();
       revisarRetornoPago();
+      revisarVerificacion();
       try {
         estado.config = await api('/tienda/publica');
       } catch (e) {
@@ -630,13 +631,69 @@
         const r = await fetch(API + ruta, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         const data = await r.json();
         if (!r.ok) throw new Error(Array.isArray(data.message) ? data.message.join(' ') : (data.message || 'No se pudo completar.'));
+        if (data.necesitaVerificar) {
+          auth.cargando = false;
+          mostrarAvisoVerificar(data.correo || correo);
+          return;
+        }
         guardarSesion(data.token, data.cliente);
         cerrarAuth();
         if (auth.continuar) abrirCheckout();
       } catch (e) {
         auth.cargando = false;
+        if (esLogin && /confirm/i.test(e.message || '')) { mostrarAvisoVerificar(correo); return; }
         auth.error = e.message || 'No se pudo completar. Intenta de nuevo.';
         renderAuth();
+      }
+    }
+
+    // Aviso "confirma tu correo" tras registrarse
+    function mostrarAvisoVerificar(correo) {
+      document.getElementById('authCapa').classList.add('abierto');
+      const cont = document.getElementById('auth');
+      cont.innerHTML =
+        '<div class="auth-top"><button class="auth-x" id="authX">✕</button><div class="auth-tabs"><span class="auth-tab on">Confirma tu correo</span></div></div>' +
+        '<div class="auth-cuerpo" style="text-align:center">' +
+          '<div style="font-size:42px;margin:4px 0">📧</div>' +
+          '<p style="font-size:15px;margin:0 0 8px">Te enviamos un correo a <b>' + escapar(correo) + '</b>.</p>' +
+          '<p style="font-size:14px;color:#475569;margin:0 0 4px">Ábrelo y haz clic en <b>"Confirmar mi cuenta"</b> para activarla. Después podrás iniciar sesión.</p>' +
+          '<p style="font-size:12.5px;color:#94a3b8;margin-top:10px">¿No llegó en unos minutos? Revisa tu carpeta de Spam.</p>' +
+          '<div id="reenvioMsg" style="font-size:13px;color:var(--esmeralda-osc);margin-top:8px"></div>' +
+        '</div>' +
+        '<div class="auth-pie">' +
+          '<button class="auth-btn" id="authOk">Entendido</button>' +
+          '<button class="auth-invitado" id="authReenviar">Reenviar correo</button>' +
+        '</div>';
+      document.getElementById('authX').addEventListener('click', cerrarAuth);
+      document.getElementById('authOk').addEventListener('click', () => { cerrarAuth(); auth.modo = 'login'; });
+      document.getElementById('authReenviar').addEventListener('click', () => reenviarVerificacion(correo));
+    }
+
+    async function reenviarVerificacion(correo) {
+      const msg = document.getElementById('reenvioMsg');
+      if (msg) msg.textContent = 'Enviando…';
+      try {
+        await fetch(API + '/cuenta/reenviar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ correo }) });
+        if (msg) msg.textContent = '✓ Correo reenviado. Revisa tu bandeja (y el Spam).';
+      } catch {
+        if (msg) msg.textContent = 'No se pudo reenviar ahora. Intenta más tarde.';
+      }
+    }
+
+    // Confirmación al volver desde el enlace del correo (?verificar=TOKEN)
+    async function revisarVerificacion() {
+      const params = new URLSearchParams(location.search);
+      const token = params.get('verificar');
+      if (!token) return;
+      history.replaceState(null, '', location.pathname);
+      try {
+        const r = await fetch(API + '/cuenta/verificar?token=' + encodeURIComponent(token));
+        const data = await r.json();
+        if (!r.ok) throw new Error(Array.isArray(data.message) ? data.message.join(' ') : (data.message || 'No se pudo confirmar.'));
+        guardarSesion(data.token, data.cliente);
+        mostrarResultadoPago('¡Cuenta confirmada!', 'Tu correo quedó confirmado y ya iniciaste sesión. ¡Bienvenido a Marbit!', '✓', 'var(--esmeralda-osc)');
+      } catch (e) {
+        mostrarResultadoPago('No se pudo confirmar', e.message || 'El enlace no es válido o ya expiró.', '✕', '#b91c1c');
       }
     }
 
