@@ -205,6 +205,26 @@
     .anuncio-tit { font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin: 0 0 8px; color: var(--marino); }
     .anuncio-txt { font-size: 14.5px; color: #475569; margin: 0; line-height: 1.5; white-space: pre-line; }
     .anuncio-btn { display: inline-block; margin-top: 14px; background: var(--esmeralda); color: #fff; text-decoration: none; padding: 10px 22px; border-radius: 10px; font-weight: 700; font-size: 14px; }
+    .btn-pedidos { background: none; border: 1px solid var(--linea); color: var(--tinta); border-radius: 999px; padding: 9px 15px; font-weight: 600; font-size: 13.5px; cursor: pointer; font-family: var(--texto); }
+    .btn-pedidos:hover { border-color: var(--esmeralda); color: var(--esmeralda-osc); }
+    .ped-capa { position: fixed; inset: 0; background: rgba(15,23,42,.6); display: flex; align-items: center; justify-content: center; z-index: 1100; padding: 16px; }
+    .ped-caja { background: var(--fondo, #fff); border-radius: 16px; max-width: 560px; width: 100%; max-height: 86vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+    .ped-cab { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--linea); }
+    .ped-cab h3 { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 19px; }
+    .ped-x { background: none; border: 0; font-size: 18px; cursor: pointer; color: var(--tenue, #64748b); }
+    .ped-cont { padding: 14px 18px 20px; overflow-y: auto; }
+    .ped-msg { color: var(--tenue, #64748b); font-size: 14px; text-align: center; padding: 20px 0; }
+    .ped-item { border: 1px solid var(--linea); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+    .ped-item-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .ped-folio { font-weight: 700; font-size: 15px; }
+    .ped-est { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+    .ped-fecha { color: var(--tenue, #64748b); font-size: 12.5px; margin-top: 2px; }
+    .ped-prods { font-size: 13.5px; margin: 8px 0; line-height: 1.6; color: #334155; }
+    .ped-tot { font-weight: 700; font-size: 14px; }
+    .ped-acc { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .ped-btn { text-decoration: none; font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: 9px; }
+    .ped-duda { background: var(--esmeralda-suave); color: var(--esmeralda-osc); }
+    .ped-queja { background: #fef3c7; color: #92400e; }
   </style>
 </head>
 <body>
@@ -594,14 +614,65 @@
       if (!z) return;
       if (estado.sesion) {
         const nombre = (estado.sesion.cliente.nombre || '').split(' ')[0];
-        z.innerHTML = '<span class="cuenta-nom">Hola, <span>' + escapar(nombre) + '</span></span><button class="btn-salir" id="salirBtn">Cerrar sesión</button>';
+        z.innerHTML = '<button class="btn-pedidos" id="misPedidosBtn">Mis pedidos</button><span class="cuenta-nom">Hola, <span>' + escapar(nombre) + '</span></span><button class="btn-salir" id="salirBtn">Cerrar sesión</button>';
         document.getElementById('salirBtn').addEventListener('click', cerrarSesion);
+        document.getElementById('misPedidosBtn').addEventListener('click', abrirMisPedidos);
       } else {
         z.innerHTML =
           '<button class="btn-cuenta-2" id="registroBtn">Crear cuenta</button>' +
           '<button class="btn-cuenta" id="loginBtn">Iniciar sesión</button>';
         document.getElementById('loginBtn').addEventListener('click', () => abrirAuth(false, 'login'));
         document.getElementById('registroBtn').addEventListener('click', () => abrirAuth(false, 'registro'));
+      }
+    }
+
+    const ESTADO_PED = {
+      PENDIENTE_PAGO: { t: 'Pendiente de pago', c: '#92400e', b: '#fef3c7' },
+      PAGADO: { t: 'Pagado', c: '#1e40af', b: '#dbeafe' },
+      PREPARANDO: { t: 'Preparando', c: '#3730a3', b: '#e0e7ff' },
+      LISTO: { t: 'Listo / En camino', c: '#065f46', b: '#d1fae5' },
+      ENTREGADO: { t: 'Entregado', c: '#065f46', b: '#d1fae5' },
+      CANCELADO: { t: 'Cancelado', c: '#991b1b', b: '#fee2e2' },
+    };
+
+    async function abrirMisPedidos() {
+      if (!estado.sesion) { abrirAuth(false, 'login'); return; }
+      const ya = document.getElementById('pedidosCapa');
+      if (ya) ya.remove();
+      const capa = document.createElement('div');
+      capa.id = 'pedidosCapa';
+      capa.className = 'ped-capa';
+      capa.innerHTML = '<div class="ped-caja"><div class="ped-cab"><h3>Mis pedidos</h3><button class="ped-x" aria-label="Cerrar">✕</button></div><div class="ped-cont" id="pedCont"><p class="ped-msg">Cargando…</p></div></div>';
+      document.body.appendChild(capa);
+      const cerrar = () => capa.remove();
+      capa.querySelector('.ped-x').addEventListener('click', cerrar);
+      capa.addEventListener('click', (e) => { if (e.target === capa) cerrar(); });
+
+      try {
+        const r = await fetch(API + '/cuenta/pedidos', { headers: { Authorization: 'Bearer ' + estado.sesion.token } });
+        if (!r.ok) throw new Error('error');
+        const pedidos = await r.json();
+        const cont = document.getElementById('pedCont');
+        if (!cont) return;
+        if (!pedidos.length) { cont.innerHTML = '<p class="ped-msg">Aún no tienes pedidos. Cuando compres, aquí podrás seguir su estado.</p>'; return; }
+        const wa = (estado.config.whatsapp || '').replace(/\D/g, '');
+        const nombre = estado.sesion.cliente.nombre || '';
+        cont.innerHTML = pedidos.map((p) => {
+          const e = ESTADO_PED[p.estado] || ESTADO_PED.PENDIENTE_PAGO;
+          const fecha = new Date(p.creado).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+          const items = (p.detalles || []).map((d) => '• ' + Number(d.cantidad) + ' × ' + escapar(d.nombre)).join('<br>');
+          let acc = '';
+          if (wa) {
+            const base = 'Hola, soy ' + nombre + '. Sobre mi pedido #' + p.id + ' (' + e.t + ')';
+            const duda = 'https://wa.me/' + wa + '?text=' + encodeURIComponent(base + ' quisiera una aclaración / tengo una duda: ');
+            const queja = 'https://wa.me/' + wa + '?text=' + encodeURIComponent(base + ' quiero reportar un problema o queja: ');
+            acc = '<div class="ped-acc"><a class="ped-btn ped-duda" target="_blank" rel="noopener" href="' + duda + '">💬 Duda o aclaración</a><a class="ped-btn ped-queja" target="_blank" rel="noopener" href="' + queja + '">⚠️ Queja o problema</a></div>';
+          }
+          return '<div class="ped-item"><div class="ped-item-top"><span class="ped-folio">Pedido #' + p.id + '</span><span class="ped-est" style="background:' + e.b + ';color:' + e.c + '">' + e.t + '</span></div><div class="ped-fecha">' + fecha + '</div><div class="ped-prods">' + items + '</div><div class="ped-tot">Total: ' + money(p.total) + '</div>' + acc + '</div>';
+        }).join('');
+      } catch (err) {
+        const cont = document.getElementById('pedCont');
+        if (cont) cont.innerHTML = '<p class="ped-msg">No se pudieron cargar tus pedidos. Intenta de nuevo más tarde.</p>';
       }
     }
 
