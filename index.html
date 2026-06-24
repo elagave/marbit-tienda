@@ -225,6 +225,14 @@
     .ped-btn { text-decoration: none; font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: 9px; }
     .ped-duda { background: var(--esmeralda-suave); color: var(--esmeralda-osc); }
     .ped-queja { background: #fef3c7; color: #92400e; }
+    .promo-banner { max-width: 1100px; margin: 16px auto; padding: 0 16px; }
+    .pb-vp { position: relative; overflow: hidden; border-radius: 12px; }
+    .pb-pista { display: flex; transition: transform .5s ease; }
+    .pb-slide { flex: 0 0 100%; display: block; }
+    .pb-slide img { width: 100%; display: block; }
+    .pb-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; gap: 6px; justify-content: center; }
+    .pb-dot { width: 9px; height: 9px; border-radius: 50%; border: 0; background: rgba(255,255,255,.55); cursor: pointer; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+    .pb-dot.on { background: #fff; }
   </style>
 </head>
 <body>
@@ -243,6 +251,8 @@
     </div>
   </header>
 
+  <div id="bannerTop"></div>
+
   <section class="banda">
     <div class="banda-int">
       <h1>Tienda en línea</h1>
@@ -257,6 +267,8 @@
     <div class="cats" id="cats"></div>
     <div id="contenido"><div class="estado">Cargando catálogo…</div></div>
   </main>
+
+  <div id="bannerBottom"></div>
 
   <footer class="pie">
     Marbit · Porfirio Díaz 101, Col. Centro, Valle de Bravo, Edo. de México · <span id="pieWa"></span>
@@ -361,7 +373,71 @@
 
       await cargarCatalogo(true);
       renderCarrito();
+      mostrarBanner();
       mostrarAnuncio();
+    }
+
+    // Banner de promociones (carrusel deslizable, superior/inferior)
+    function mostrarBanner() {
+      const cfgB = estado.config && estado.config.banner;
+      const top = document.getElementById('bannerTop');
+      const bottom = document.getElementById('bannerBottom');
+      if (top) top.innerHTML = '';
+      if (bottom) bottom.innerHTML = '';
+      if (!cfgB) return; // banner deshabilitado
+      const pos = cfgB.posicion || 'SUPERIOR';
+      let slides;
+      if (estado.categoriaId == null) {
+        slides = cfgB.slides || []; // "Todo" → banner general
+      } else {
+        const cat = (estado.categorias || []).find((c) => c.id === estado.categoriaId);
+        slides = (cat && cat.banner && cat.banner.slides) ? cat.banner.slides : [];
+      }
+      if (!slides.length) return;
+      if ((pos === 'SUPERIOR' || pos === 'AMBOS') && top) montarCarrusel(top, slides);
+      if ((pos === 'INFERIOR' || pos === 'AMBOS') && bottom) montarCarrusel(bottom, slides);
+    }
+
+    function montarCarrusel(cont, slides) {
+      const wrap = document.createElement('div');
+      wrap.className = 'promo-banner';
+      const vp = document.createElement('div');
+      vp.className = 'pb-vp';
+      const pista = document.createElement('div');
+      pista.className = 'pb-pista';
+      pista.innerHTML = slides.map((s) => (
+        s.enlace
+          ? '<a class="pb-slide" href="' + escapar(s.enlace) + '" target="_blank" rel="noopener"><img src="' + escapar(s.imagen) + '" alt="Promoción"></a>'
+          : '<div class="pb-slide"><img src="' + escapar(s.imagen) + '" alt="Promoción"></div>'
+      )).join('');
+      vp.appendChild(pista);
+
+      let dots = null;
+      if (slides.length > 1) {
+        dots = document.createElement('div');
+        dots.className = 'pb-dots';
+        slides.forEach((_, i) => {
+          const d = document.createElement('button');
+          d.className = 'pb-dot' + (i === 0 ? ' on' : '');
+          d.addEventListener('click', () => ir(i));
+          dots.appendChild(d);
+        });
+        vp.appendChild(dots);
+      }
+      wrap.appendChild(vp);
+      cont.appendChild(wrap);
+
+      let idx = 0;
+      function ir(i) {
+        idx = (i + slides.length) % slides.length;
+        pista.style.transform = 'translateX(-' + (idx * 100) + '%)';
+        if (dots) Array.from(dots.children).forEach((d, j) => d.classList.toggle('on', j === idx));
+      }
+      if (slides.length > 1) {
+        let timer = setInterval(() => ir(idx + 1), 4500);
+        wrap.addEventListener('mouseenter', () => clearInterval(timer));
+        wrap.addEventListener('mouseleave', () => { timer = setInterval(() => ir(idx + 1), 4500); });
+      }
     }
 
     // Anuncio emergente (una vez por visitante hasta que cambie)
@@ -421,6 +497,7 @@
       cats.querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => {
         estado.categoriaId = b.dataset.cat ? Number(b.dataset.cat) : null;
         renderCategorias();
+        mostrarBanner();
         cargarCatalogo(true);
       }));
     }
