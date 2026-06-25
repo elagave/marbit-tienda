@@ -192,6 +192,19 @@
     .modal-nom { font-family: var(--display); font-size: 22px; font-weight: 700; margin: 4px 0 12px; }
     .modal-desc { font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 18px; }
     .modal-precio { font-family: var(--display); font-size: 28px; font-weight: 700; color: var(--esmeralda-osc); margin-bottom: 16px; }
+    .modal-ficha { margin-bottom: 18px; }
+    .modal-ficha-t { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--esmeralda-osc); margin-bottom: 6px; }
+    .modal-ficha-c { font-size: 13.5px; color: #475569; line-height: 1.6; white-space: pre-line; background: #f8fafc; border: 1px solid var(--linea); border-radius: 10px; padding: 12px 14px; }
+    .mc { position: relative; width: 100%; }
+    .mc-vp { overflow: hidden; width: 100%; }
+    .mc-pista { display: flex; transition: transform .35s ease; }
+    .mc-slide { flex: 0 0 100%; display: grid; place-content: center; }
+    .mc-slide img { width: 100%; height: auto; object-fit: contain; padding: 24px; max-height: 420px; }
+    .mc-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255,255,255,.92); box-shadow: 0 2px 8px rgba(0,0,0,.2); cursor: pointer; font-size: 20px; line-height: 1; color: var(--esmeralda-osc); display: grid; place-content: center; }
+    .mc-prev { left: 10px; } .mc-next { right: 10px; }
+    .mc-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; gap: 6px; justify-content: center; }
+    .mc-dot { width: 9px; height: 9px; border-radius: 50%; border: 0; background: rgba(15,23,42,.25); cursor: pointer; padding: 0; }
+    .mc-dot.on { background: var(--esmeralda); }
 
     .pie { text-align: center; color: var(--gris); font-size: 12.5px; padding: 30px 20px; border-top: 1px solid var(--linea); }
 
@@ -1140,13 +1153,27 @@
       try {
         const p = await api('/publico/producto/' + id);
         const precio = money(p.precio);
+        const imgs = (Array.isArray(p.imagenes) && p.imagenes.length) ? p.imagenes : (p.imagenUrl ? [p.imagenUrl] : []);
+        const imgHtml = imgs.length
+          ? '<div class="mc">' +
+              '<div class="mc-vp"><div class="mc-pista">' +
+                imgs.map((u) => '<div class="mc-slide"><img src="' + escapar(u) + '" alt="' + escapar(p.nombre) + '"/></div>').join('') +
+              '</div></div>' +
+              (imgs.length > 1
+                ? '<button class="mc-nav mc-prev" data-mc="-1" aria-label="Anterior">‹</button>' +
+                  '<button class="mc-nav mc-next" data-mc="1" aria-label="Siguiente">›</button>' +
+                  '<div class="mc-dots">' + imgs.map((_, i) => '<button class="mc-dot' + (i === 0 ? ' on' : '') + '" data-dot="' + i + '"></button>').join('') + '</div>'
+                : '')
+            + '</div>'
+          : '<span class="sin">Sin imagen</span>';
         modal.innerHTML =
-          '<div class="modal-img">' + (p.imagenUrl ? '<img src="' + escapar(p.imagenUrl) + '" alt="' + escapar(p.nombre) + '"/>' : '<span class="sin">Sin imagen</span>') + '</div>' +
+          '<div class="modal-img">' + imgHtml + '</div>' +
           '<div class="modal-info">' +
             '<button class="modal-x" id="modalX">✕</button>' +
             (p.categoria ? '<div class="modal-cat">' + escapar(p.categoria.nombre) + '</div>' : '') +
             '<div class="modal-nom">' + escapar(p.nombre) + '</div>' +
             (p.descripcion ? '<div class="modal-desc">' + escapar(p.descripcion) + '</div>' : '') +
+            (p.fichaTecnica ? '<div class="modal-ficha"><div class="modal-ficha-t">Ficha técnica</div><div class="modal-ficha-c">' + escapar(p.fichaTecnica) + '</div></div>' : '') +
             (precio ? '<div class="modal-precio">' + precio + '</div>' : '<div class="modal-precio" style="font-size:16px;color:var(--gris)">Consultar precio</div>') +
             (p.disponible
               ? '<button class="btn-add" style="padding:13px 22px;font-size:15px" data-addmodal="' + p.id + '">Agregar al carrito</button>'
@@ -1155,6 +1182,19 @@
         document.getElementById('modalX').addEventListener('click', cerrarModal);
         const am = modal.querySelector('[data-addmodal]');
         if (am) am.addEventListener('click', () => { agregar(p.id); cerrarModal(); });
+        // Navegación del carrusel de imágenes
+        if (imgs.length > 1) {
+          let idx = 0;
+          const pista = modal.querySelector('.mc-pista');
+          const dots = modal.querySelectorAll('.mc-dot');
+          const ir = (i) => {
+            idx = (i + imgs.length) % imgs.length;
+            if (pista) pista.style.transform = 'translateX(-' + (idx * 100) + '%)';
+            dots.forEach((d, j) => d.classList.toggle('on', j === idx));
+          };
+          modal.querySelectorAll('[data-mc]').forEach((b) => b.addEventListener('click', () => ir(idx + Number(b.dataset.mc))));
+          dots.forEach((d) => d.addEventListener('click', () => ir(Number(d.dataset.dot))));
+        }
       } catch {
         modal.innerHTML = '<div style="padding:50px;text-align:center;grid-column:1/-1">No pudimos cargar el producto. <button class="modal-x" id="modalX" style="position:static;font-size:18px">Cerrar</button></div>';
         document.getElementById('modalX').addEventListener('click', cerrarModal);
