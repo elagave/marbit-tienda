@@ -233,6 +233,10 @@
     .pb-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; gap: 6px; justify-content: center; }
     .pb-dot { width: 9px; height: 9px; border-radius: 50%; border: 0; background: rgba(255,255,255,.55); cursor: pointer; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
     .pb-dot.on { background: #fff; }
+    .promo-inferior { margin: 24px auto 8px; }
+    .pb-estatico { display: block; border-radius: 12px; overflow: hidden; }
+    .pb-estatico img { width: 100%; display: block; }
+    a.pb-estatico { cursor: pointer; }
   </style>
 </head>
 <body>
@@ -251,8 +255,6 @@
     </div>
   </header>
 
-  <div id="bannerTop"></div>
-
   <section class="banda">
     <div class="banda-int">
       <h1>Tienda en línea</h1>
@@ -262,6 +264,8 @@
       </div>
     </div>
   </section>
+
+  <div id="bannerTop"></div>
 
   <main class="cuerpo">
     <div class="cats" id="cats"></div>
@@ -377,7 +381,7 @@
       mostrarAnuncio();
     }
 
-    // Banner de promociones (carrusel deslizable, superior/inferior)
+    // Banner de promociones: carrusel arriba (bajo la barra) + imagen fija abajo
     function mostrarBanner() {
       const cfgB = estado.config && estado.config.banner;
       const top = document.getElementById('bannerTop');
@@ -385,17 +389,28 @@
       if (top) top.innerHTML = '';
       if (bottom) bottom.innerHTML = '';
       if (!cfgB) return; // banner deshabilitado
-      const pos = cfgB.posicion || 'SUPERIOR';
+      // Carrusel SUPERIOR: general en "Todo", o el de la categoría seleccionada.
       let slides;
       if (estado.categoriaId == null) {
-        slides = cfgB.slides || []; // "Todo" → banner general
+        slides = cfgB.slides || [];
       } else {
         const cat = (estado.categorias || []).find((c) => c.id === estado.categoriaId);
         slides = (cat && cat.banner && cat.banner.slides) ? cat.banner.slides : [];
       }
-      if (!slides.length) return;
-      if ((pos === 'SUPERIOR' || pos === 'AMBOS') && top) montarCarrusel(top, slides);
-      if ((pos === 'INFERIOR' || pos === 'AMBOS') && bottom) montarCarrusel(bottom, slides);
+      if (slides.length && top) montarCarrusel(top, slides);
+      // Banner INFERIOR: imagen única estática (general, igual en toda la tienda).
+      const inf = cfgB.inferior;
+      if (inf && inf.imagen && bottom) montarBannerInferior(bottom, inf);
+    }
+
+    function montarBannerInferior(cont, inf) {
+      const wrap = document.createElement('div');
+      wrap.className = 'promo-banner promo-inferior';
+      const img = '<img src="' + escapar(inf.imagen) + '" alt="Banner">';
+      wrap.innerHTML = inf.enlace
+        ? '<a class="pb-estatico" href="' + escapar(inf.enlace) + '" target="_blank" rel="noopener">' + img + '</a>'
+        : '<div class="pb-estatico">' + img + '</div>';
+      cont.appendChild(wrap);
     }
 
     function montarCarrusel(cont, slides) {
