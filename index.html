@@ -10,6 +10,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="https://res.cloudinary.com/dfo8st899/image/upload/v1782596535/marbit-icono-fondo_veyvlp.png" />
   <meta name="apple-mobile-web-app-title" content="Marbit" />
   <meta name="theme-color" content="#0e7c66" />
+  <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -31,11 +32,26 @@
     /* ---- Encabezado ---- */
     .tope { position: sticky; top: 0; z-index: 30; background: var(--blanco); border-bottom: 1px solid var(--linea); }
     .tope-int { max-width: 1180px; margin: 0 auto; display: flex; align-items: center; gap: 14px; padding: 14px 20px; }
-    .marca { display: flex; align-items: center; gap: 8px; }
-    .marca-img { height: 46px; width: auto; }
-    .marca-logo { font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: -.5px; color: var(--marino); line-height: 1; }
+    .marca { display: flex; align-items: center; gap: 10px; }
+    .marca-img { height: 44px; width: auto; }
+    .marca-txt { display: flex; flex-direction: column; gap: 2px; }
+    .marca-logo { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -.5px; color: var(--marino); line-height: 1; }
     .marca-logo span { color: var(--esmeralda); }
-    .marca-tag { font-size: 11.5px; color: var(--gris); font-weight: 500; display: none; }
+    .marca-tag { font-size: 11.5px; color: var(--gris); font-weight: 500; }
+
+    /* ---- Barra "Instalar app" ---- */
+    .instalar-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--esmeralda-suave); border-bottom: 1px solid var(--linea); padding: 10px 16px; font-size: 14px; color: var(--esmeralda-osc); }
+    .ib-txt { font-weight: 500; }
+    .ib-acc { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .ib-btn { background: var(--esmeralda); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-weight: 600; font-size: 14px; cursor: pointer; font-family: var(--texto); }
+    .ib-btn:hover { background: var(--esmeralda-osc); }
+    .ib-cerrar { background: transparent; border: none; color: var(--esmeralda-osc); font-size: 16px; cursor: pointer; padding: 4px 6px; line-height: 1; }
+    .ios-capa { position: fixed; inset: 0; background: rgba(15,23,42,.5); display: flex; align-items: center; justify-content: center; z-index: 60; padding: 20px; }
+    .ios-modal { background: #fff; border-radius: 16px; padding: 22px; max-width: 360px; width: 100%; position: relative; box-shadow: var(--sombra); }
+    .ios-modal h3 { margin: 0 0 10px; font-family: var(--display); color: var(--marino); }
+    .ios-modal ol { margin: 8px 0 0; padding-left: 20px; line-height: 1.7; font-size: 14px; }
+    .ios-x { position: absolute; top: 12px; right: 12px; background: transparent; border: none; font-size: 18px; cursor: pointer; color: var(--gris); }
+    @media (max-width: 560px) { .ib-txt { font-size: 13px; } }
     .crece { flex: 1; }
     .btn-carrito { position: relative; display: inline-flex; align-items: center; gap: 8px; background: var(--esmeralda); color: #fff; border: 0; border-radius: 999px; padding: 10px 16px; font-weight: 600; font-size: 14px; cursor: pointer; font-family: var(--texto); }
     .btn-carrito:hover { background: var(--esmeralda-osc); }
@@ -261,7 +277,11 @@
   <header class="tope">
     <div class="tope-int">
       <div class="marca">
-        <img class="marca-img" src="https://res.cloudinary.com/dfo8st899/image/upload/v1782596534/marbit-logo_s0tae9.png" alt="Marbit — cómputo, electrónica y reparación" />
+        <img class="marca-img" src="https://res.cloudinary.com/dfo8st899/image/upload/v1782596534/marbit-logo_s0tae9.png" alt="Marbit" />
+        <div class="marca-txt">
+          <span class="marca-logo">mar<span>bit</span></span>
+          <span class="marca-tag">cómputo · electrónica · reparación</span>
+        </div>
       </div>
       <div class="crece"></div>
       <div class="auth-zona" id="authZona"></div>
@@ -271,6 +291,27 @@
       </button>
     </div>
   </header>
+
+  <div id="instalarBar" class="instalar-bar" style="display:none">
+    <span class="ib-txt">📲 Instala <b>Marbit</b> en tu teléfono para entrar más rápido</span>
+    <div class="ib-acc">
+      <button id="btnInstalar" class="ib-btn" type="button">Instalar app</button>
+      <button id="btnInstalarX" class="ib-cerrar" type="button" aria-label="Cerrar">✕</button>
+    </div>
+  </div>
+
+  <div id="iosInstrucciones" class="ios-capa" style="display:none">
+    <div class="ios-modal">
+      <button class="ios-x" id="iosX" type="button" aria-label="Cerrar">✕</button>
+      <h3>Instalar Marbit</h3>
+      <p style="margin:0 0 6px;color:var(--gris);font-size:14px">En tu iPhone o iPad (con Safari):</p>
+      <ol>
+        <li>Toca el botón <b>Compartir</b> (el cuadro con la flecha ↑, abajo).</li>
+        <li>Elige <b>"Agregar a inicio"</b>.</li>
+        <li>Toca <b>Agregar</b>. ¡Listo! 🎉</li>
+      </ol>
+    </div>
+  </div>
 
   <section class="banda">
     <div class="banda-int">
@@ -1229,6 +1270,56 @@
     document.getElementById('modalCapa').addEventListener('click', (e) => { if (e.target.id === 'modalCapa') cerrarModal(); });
 
     iniciar();
+  </script>
+
+  <script>
+    (function () {
+      var bar = document.getElementById('instalarBar');
+      var btn = document.getElementById('btnInstalar');
+      var cerrar = document.getElementById('btnInstalarX');
+      var iosCapa = document.getElementById('iosInstrucciones');
+      var iosX = document.getElementById('iosX');
+      var deferred = null;
+
+      var esStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      var esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      var descartado = false;
+      try { descartado = localStorage.getItem('marbit_install_off') === '1'; } catch (e) {}
+
+      function mostrarBar() { if (bar && !esStandalone && !descartado) bar.style.display = 'flex'; }
+      function ocultarBar() { if (bar) bar.style.display = 'none'; }
+
+      // Android/Chrome: el navegador avisa cuando se puede instalar
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferred = e;
+        mostrarBar();
+      });
+
+      // iPhone: no hay aviso automático; mostramos el botón para dar instrucciones
+      if (esIOS && !esStandalone) mostrarBar();
+
+      if (btn) btn.addEventListener('click', async function () {
+        if (deferred) {
+          deferred.prompt();
+          try { await deferred.userChoice; } catch (e) {}
+          deferred = null;
+          ocultarBar();
+        } else if (iosCapa) {
+          iosCapa.style.display = 'flex';
+        }
+      });
+
+      if (cerrar) cerrar.addEventListener('click', function () {
+        ocultarBar();
+        try { localStorage.setItem('marbit_install_off', '1'); } catch (e) {}
+      });
+
+      if (iosX) iosX.addEventListener('click', function () { if (iosCapa) iosCapa.style.display = 'none'; });
+      if (iosCapa) iosCapa.addEventListener('click', function (e) { if (e.target === iosCapa) iosCapa.style.display = 'none'; });
+
+      window.addEventListener('appinstalled', function () { ocultarBar(); });
+    })();
   </script>
 </body>
 </html>
