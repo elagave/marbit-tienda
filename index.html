@@ -209,6 +209,9 @@
     .pie { text-align: center; color: var(--gris); font-size: 12.5px; padding: 30px 20px; border-top: 1px solid var(--linea); }
 
     @media (min-width: 560px) { .marca-tag { display: block; } }
+    .btn-compartir { margin-top: 10px; background: #fff; border: 1px solid var(--esmeralda); color: var(--esmeralda-osc); border-radius: 10px; padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--texto); display: inline-flex; align-items: center; gap: 7px; }
+    .btn-compartir:hover { background: var(--esmeralda-suave); }
+    .compartir-ok { display: block; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--esmeralda-osc); min-height: 16px; }
     @media (max-width: 620px) { .modal { grid-template-columns: 1fr; } .modal-img { min-height: 220px; } }
     .anuncio-capa { position: fixed; inset: 0; background: rgba(15,23,42,.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 18px; }
     .anuncio-caja { background: #fff; border-radius: 18px; max-width: 420px; width: 100%; overflow: hidden; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
@@ -392,6 +395,10 @@
       renderCarrito();
       mostrarBanner();
       mostrarAnuncio();
+
+      // Si entraron con un link directo (#producto=ID), abrir su ficha
+      const idUrl = idProductoDesdeHash();
+      if (idUrl != null) verProducto(idUrl, false);
     }
 
     // Banner de promociones: carrusel arriba (bajo la barra) + imagen fija abajo
@@ -1145,9 +1152,10 @@
     }
 
     // ===== Modal de producto =====
-    async function verProducto(id) {
+    async function verProducto(id, pushUrl = true) {
       const capa = document.getElementById('modalCapa');
       const modal = document.getElementById('modal');
+      if (pushUrl && idProductoDesdeHash() !== id) history.pushState({ prod: id }, '', '#producto=' + id);
       modal.innerHTML = '<div style="padding:50px;text-align:center;color:var(--gris);grid-column:1/-1">Cargando…</div>';
       capa.classList.add('abierto');
       try {
@@ -1178,10 +1186,14 @@
             (p.disponible
               ? '<button class="btn-add" style="padding:13px 22px;font-size:15px" data-addmodal="' + p.id + '">Agregar al carrito</button>'
               : '<span class="agotado" style="font-size:13px">Agotado por ahora</span>') +
+            '<button class="btn-compartir" id="modalCompartir" type="button">🔗 Compartir publicación</button>' +
+            '<span class="compartir-ok" id="compartirOk"></span>' +
           '</div>';
         document.getElementById('modalX').addEventListener('click', cerrarModal);
         const am = modal.querySelector('[data-addmodal]');
         if (am) am.addEventListener('click', () => { agregar(p.id); cerrarModal(); });
+        const comp = document.getElementById('modalCompartir');
+        if (comp) comp.addEventListener('click', () => compartirProducto(p));
         // Navegación del carrusel de imágenes
         if (imgs.length > 1) {
           let idx = 0;
@@ -1200,7 +1212,31 @@
         document.getElementById('modalX').addEventListener('click', cerrarModal);
       }
     }
-    function cerrarModal() { document.getElementById('modalCapa').classList.remove('abierto'); }
+    function cerrarModal() {
+      document.getElementById('modalCapa').classList.remove('abierto');
+      if (idProductoDesdeHash() != null) history.replaceState(null, '', location.pathname + location.search);
+    }
+
+    // Devuelve el id del producto si la URL trae #producto=ID
+    function idProductoDesdeHash() {
+      const m = (location.hash || '').match(/producto=(\d+)/);
+      return m ? Number(m[1]) : null;
+    }
+
+    // Compartir el producto: usa el menú nativo del celular, o copia el link
+    async function compartirProducto(p) {
+      const url = location.origin + location.pathname + '#producto=' + p.id;
+      try {
+        if (navigator.share) { await navigator.share({ title: p.nombre, text: p.nombre, url }); return; }
+      } catch { return; } // el usuario canceló el menú nativo
+      try {
+        await navigator.clipboard.writeText(url);
+        const ok = document.getElementById('compartirOk');
+        if (ok) { ok.textContent = '¡Link copiado! Ya puedes pegarlo donde quieras.'; setTimeout(() => { ok.textContent = ''; }, 3000); }
+      } catch {
+        prompt('Copia este enlace para compartir:', url);
+      }
+    }
 
     // ===== Abrir/cerrar carrito =====
     function abrirCarrito() {
@@ -1223,6 +1259,14 @@
     document.getElementById('cerrarCarrito').addEventListener('click', cerrarCarrito);
     document.getElementById('capaCarrito').addEventListener('click', cerrarCarrito);
     document.getElementById('modalCapa').addEventListener('click', (e) => { if (e.target.id === 'modalCapa') cerrarModal(); });
+
+    // Botón "atrás" del navegador: abre/cierra la ficha según el link
+    window.addEventListener('popstate', () => {
+      const id = idProductoDesdeHash();
+      const abierto = document.getElementById('modalCapa').classList.contains('abierto');
+      if (id != null) verProducto(id, false);
+      else if (abierto) document.getElementById('modalCapa').classList.remove('abierto');
+    });
 
     iniciar();
   </script>
