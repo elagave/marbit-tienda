@@ -38,6 +38,9 @@
     .marca-logo { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -.5px; color: var(--marino); line-height: 1; }
     .marca-logo span { color: var(--esmeralda); }
     .marca-tag { font-size: 11.5px; color: var(--gris); font-weight: 500; }
+    .marca { min-width: 0; }
+    /* En celular, mostrar solo el logo (ya incluye "marbit") para no encimar con "Crear cuenta" */
+    @media (max-width: 600px) { .marca-txt { display: none; } }
 
     /* ---- Barra "Instalar app" ---- */
     .instalar-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--esmeralda-suave); border-bottom: 1px solid var(--linea); padding: 10px 16px; font-size: 14px; color: var(--esmeralda-osc); }
