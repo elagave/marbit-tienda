@@ -6,6 +6,10 @@
   <title>Marbit — Tienda en línea</title>
   <meta name="description" content="Cómputo, electrónica y accesorios en Valle de Bravo. Compra en línea y recoge en tienda o recibe a domicilio." />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzBlN2M2NiIvPjxyZWN0IHg9IjE4LjUiIHk9IjMuNSIgd2lkdGg9IjYuNSIgaGVpZ2h0PSIxMSIgcng9IjEuMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iLjkyIi8+PHJlY3QgeD0iNi41IiB5PSI4IiB3aWR0aD0iMTAuNSIgaGVpZ2h0PSI2LjUiIHJ4PSIxLjgiIGZpbGw9IiNmZmZmZmYiLz48cmVjdCB4PSI4LjIiIHk9IjkuNyIgd2lkdGg9IjcuMSIgaGVpZ2h0PSIzLjEiIHJ4PSIxIiBmaWxsPSIjMGU3YzY2Ii8+PHJlY3QgeD0iNC41IiB5PSIxNCIgd2lkdGg9IjIzIiBoZWlnaHQ9IjEzIiByeD0iMi4yIiBmaWxsPSIjZmZmZmZmIi8+PGcgZmlsbD0iIzBlN2M2NiI+PGNpcmNsZSBjeD0iOSIgY3k9IjE4LjUiIHI9IjEuMyIvPjxjaXJjbGUgY3g9IjEzIiBjeT0iMTguNSIgcj0iMS4zIi8+PGNpcmNsZSBjeD0iMTciIGN5PSIxOC41IiByPSIxLjMiLz48Y2lyY2xlIGN4PSI5IiBjeT0iMjMiIHI9IjEuMyIvPjxjaXJjbGUgY3g9IjEzIiBjeT0iMjMiIHI9IjEuMyIvPjxjaXJjbGUgY3g9IjE3IiBjeT0iMjMiIHI9IjEuMyIvPjwvZz48cmVjdCB4PSIyMC4zIiB5PSIxNy4zIiB3aWR0aD0iNC44IiBoZWlnaHQ9IjciIHJ4PSIxLjMiIGZpbGw9IiNmNTllMGIiLz48L3N2Zz4=" />
+  <link rel="apple-touch-icon" href="https://res.cloudinary.com/dfo8st899/image/upload/v1782596535/marbit-icono-fondo_veyvlp.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="https://res.cloudinary.com/dfo8st899/image/upload/v1782596535/marbit-icono-fondo_veyvlp.png" />
+  <meta name="apple-mobile-web-app-title" content="Marbit" />
+  <meta name="theme-color" content="#0e7c66" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -27,7 +31,8 @@
     /* ---- Encabezado ---- */
     .tope { position: sticky; top: 0; z-index: 30; background: var(--blanco); border-bottom: 1px solid var(--linea); }
     .tope-int { max-width: 1180px; margin: 0 auto; display: flex; align-items: center; gap: 14px; padding: 14px 20px; }
-    .marca { display: flex; align-items: baseline; gap: 8px; }
+    .marca { display: flex; align-items: center; gap: 8px; }
+    .marca-img { height: 46px; width: auto; }
     .marca-logo { font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: -.5px; color: var(--marino); line-height: 1; }
     .marca-logo span { color: var(--esmeralda); }
     .marca-tag { font-size: 11.5px; color: var(--gris); font-weight: 500; display: none; }
@@ -209,9 +214,6 @@
     .pie { text-align: center; color: var(--gris); font-size: 12.5px; padding: 30px 20px; border-top: 1px solid var(--linea); }
 
     @media (min-width: 560px) { .marca-tag { display: block; } }
-    .btn-compartir { margin-top: 10px; background: #fff; border: 1px solid var(--esmeralda); color: var(--esmeralda-osc); border-radius: 10px; padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--texto); display: inline-flex; align-items: center; gap: 7px; }
-    .btn-compartir:hover { background: var(--esmeralda-suave); }
-    .compartir-ok { display: block; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--esmeralda-osc); min-height: 16px; }
     @media (max-width: 620px) { .modal { grid-template-columns: 1fr; } .modal-img { min-height: 220px; } }
     .anuncio-capa { position: fixed; inset: 0; background: rgba(15,23,42,.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 18px; }
     .anuncio-caja { background: #fff; border-radius: 18px; max-width: 420px; width: 100%; overflow: hidden; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
@@ -259,8 +261,7 @@
   <header class="tope">
     <div class="tope-int">
       <div class="marca">
-        <span class="marca-logo">mar<span>bit</span></span>
-        <span class="marca-tag">cómputo · electrónica · reparación</span>
+        <img class="marca-img" src="https://res.cloudinary.com/dfo8st899/image/upload/v1782596534/marbit-logo_s0tae9.png" alt="Marbit — cómputo, electrónica y reparación" />
       </div>
       <div class="crece"></div>
       <div class="auth-zona" id="authZona"></div>
@@ -395,10 +396,6 @@
       renderCarrito();
       mostrarBanner();
       mostrarAnuncio();
-
-      // Si entraron con un link directo (#producto=ID), abrir su ficha
-      const idUrl = idProductoDesdeHash();
-      if (idUrl != null) verProducto(idUrl, false);
     }
 
     // Banner de promociones: carrusel arriba (bajo la barra) + imagen fija abajo
@@ -1152,10 +1149,9 @@
     }
 
     // ===== Modal de producto =====
-    async function verProducto(id, pushUrl = true) {
+    async function verProducto(id) {
       const capa = document.getElementById('modalCapa');
       const modal = document.getElementById('modal');
-      if (pushUrl && idProductoDesdeHash() !== id) history.pushState({ prod: id }, '', '#producto=' + id);
       modal.innerHTML = '<div style="padding:50px;text-align:center;color:var(--gris);grid-column:1/-1">Cargando…</div>';
       capa.classList.add('abierto');
       try {
@@ -1186,14 +1182,10 @@
             (p.disponible
               ? '<button class="btn-add" style="padding:13px 22px;font-size:15px" data-addmodal="' + p.id + '">Agregar al carrito</button>'
               : '<span class="agotado" style="font-size:13px">Agotado por ahora</span>') +
-            '<button class="btn-compartir" id="modalCompartir" type="button">🔗 Compartir publicación</button>' +
-            '<span class="compartir-ok" id="compartirOk"></span>' +
           '</div>';
         document.getElementById('modalX').addEventListener('click', cerrarModal);
         const am = modal.querySelector('[data-addmodal]');
         if (am) am.addEventListener('click', () => { agregar(p.id); cerrarModal(); });
-        const comp = document.getElementById('modalCompartir');
-        if (comp) comp.addEventListener('click', () => compartirProducto(p));
         // Navegación del carrusel de imágenes
         if (imgs.length > 1) {
           let idx = 0;
@@ -1212,31 +1204,7 @@
         document.getElementById('modalX').addEventListener('click', cerrarModal);
       }
     }
-    function cerrarModal() {
-      document.getElementById('modalCapa').classList.remove('abierto');
-      if (idProductoDesdeHash() != null) history.replaceState(null, '', location.pathname + location.search);
-    }
-
-    // Devuelve el id del producto si la URL trae #producto=ID
-    function idProductoDesdeHash() {
-      const m = (location.hash || '').match(/producto=(\d+)/);
-      return m ? Number(m[1]) : null;
-    }
-
-    // Compartir el producto: usa el menú nativo del celular, o copia el link
-    async function compartirProducto(p) {
-      const url = location.origin + location.pathname + '#producto=' + p.id;
-      try {
-        if (navigator.share) { await navigator.share({ title: p.nombre, text: p.nombre, url }); return; }
-      } catch { return; } // el usuario canceló el menú nativo
-      try {
-        await navigator.clipboard.writeText(url);
-        const ok = document.getElementById('compartirOk');
-        if (ok) { ok.textContent = '¡Link copiado! Ya puedes pegarlo donde quieras.'; setTimeout(() => { ok.textContent = ''; }, 3000); }
-      } catch {
-        prompt('Copia este enlace para compartir:', url);
-      }
-    }
+    function cerrarModal() { document.getElementById('modalCapa').classList.remove('abierto'); }
 
     // ===== Abrir/cerrar carrito =====
     function abrirCarrito() {
@@ -1259,14 +1227,6 @@
     document.getElementById('cerrarCarrito').addEventListener('click', cerrarCarrito);
     document.getElementById('capaCarrito').addEventListener('click', cerrarCarrito);
     document.getElementById('modalCapa').addEventListener('click', (e) => { if (e.target.id === 'modalCapa') cerrarModal(); });
-
-    // Botón "atrás" del navegador: abre/cierra la ficha según el link
-    window.addEventListener('popstate', () => {
-      const id = idProductoDesdeHash();
-      const abierto = document.getElementById('modalCapa').classList.contains('abierto');
-      if (id != null) verProducto(id, false);
-      else if (abierto) document.getElementById('modalCapa').classList.remove('abierto');
-    });
 
     iniciar();
   </script>
