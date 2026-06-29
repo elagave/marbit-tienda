@@ -2,6 +2,15 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <!-- Google Analytics (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5QJJQ7ZMQW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-5QJJQ7ZMQW');
+  </script>
+  <!-- Fin Google Analytics -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Marbit — Tienda en línea</title>
   <meta name="description" content="Cómputo, electrónica y accesorios en Valle de Bravo. Compra en línea y recoge en tienda o recibe a domicilio." />
@@ -618,6 +627,10 @@
     }
 
     // ===== Carrito =====
+    function gaEvento(nombre, params) {
+      try { if (window.gtag) window.gtag('event', nombre, params || {}); } catch (e) {}
+    }
+
     function agregar(id) {
       const p = estado.productos.find((x) => x.id === id);
       if (!p) return;
@@ -627,6 +640,11 @@
       guardarCarrito();
       renderCarrito();
       abrirCarrito();
+      gaEvento('add_to_cart', {
+        currency: 'MXN',
+        value: Number(p.precio) || 0,
+        items: [{ item_id: String(p.id), item_name: p.nombre, quantity: 1 }],
+      });
     }
     function cambiarCantidad(id, delta) {
       const e = estado.carrito.find((x) => x.id === id);
@@ -1206,6 +1224,11 @@
       capa.classList.add('abierto');
       try {
         const p = await api('/publico/producto/' + id);
+        gaEvento('view_item', {
+          currency: 'MXN',
+          value: Number(p.precio) || 0,
+          items: [{ item_id: String(p.id), item_name: p.nombre }],
+        });
         const d = p.descuento;
         const tieneDesc = d && p.precioLista != null && p.precio != null && p.precio < p.precioLista;
         const pctTxt = d ? (Math.round(d.porcentaje * 10) / 10).toString().replace(/\.0$/, '') : '';
