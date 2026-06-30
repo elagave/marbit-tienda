@@ -619,6 +619,10 @@
       cats.innerHTML = html;
       cats.querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => {
         estado.categoriaId = b.dataset.cat ? Number(b.dataset.cat) : null;
+        // Al elegir una categoría, olvida la búsqueda anterior y muestra toda la categoría
+        estado.q = '';
+        const inp = document.getElementById('busqueda');
+        if (inp) inp.value = '';
         renderCategorias();
         mostrarBanner();
         cargarCatalogo(true);
@@ -1343,7 +1347,12 @@
     let debounce;
     document.getElementById('busqueda').addEventListener('input', (e) => {
       clearTimeout(debounce);
-      debounce = setTimeout(() => { estado.q = e.target.value.trim(); cargarCatalogo(true); }, 350);
+      debounce = setTimeout(() => {
+        estado.q = e.target.value.trim();
+        // Una búsqueda es global: si hay texto, se quita el filtro de categoría
+        if (estado.q && estado.categoriaId != null) { estado.categoriaId = null; renderCategorias(); }
+        cargarCatalogo(true);
+      }, 350);
     });
     document.getElementById('abrirCarrito').addEventListener('click', abrirCarrito);
     document.getElementById('cerrarCarrito').addEventListener('click', cerrarCarrito);
