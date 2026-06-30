@@ -292,6 +292,38 @@
   </style>
 </head>
 <body>
+  <div id="bienvenida">
+    <div class="bv-centro">
+      <img class="bv-logo" src="https://res.cloudinary.com/dfo8st899/image/upload/v1782596534/marbit-logo_s0tae9.png" alt="Marbit" />
+      <h2 class="bv-frase"><span id="bvTexto"></span><span class="bv-cursor"></span></h2>
+      <form id="bvForm" class="bv-accion" autocomplete="off">
+        <input id="bvInput" type="search" placeholder="Escribe lo que buscas…" autocomplete="off" />
+        <button type="submit" class="bv-btn">Buscar</button>
+      </form>
+      <a href="#" id="bvSkip" class="bv-skip">Ver todo el catálogo →</a>
+    </div>
+  </div>
+  <style>
+    #bienvenida { position: fixed; inset: 0; z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 24px;
+      background: radial-gradient(1200px 700px at 50% -10%, var(--esmeralda-suave, #e6f3ef) 0%, #ffffff 62%);
+      opacity: 1; visibility: visible; transition: opacity .55s ease, visibility .55s ease; }
+    #bienvenida.bv-cerrado { opacity: 0; visibility: hidden; }
+    .bv-centro { width: 100%; max-width: 640px; text-align: center; }
+    .bv-logo { height: 62px; width: auto; margin: 0 auto 28px; display: block; }
+    .bv-frase { font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1.25;
+      color: var(--marino, #14304f); min-height: 84px; margin: 0 0 26px; }
+    .bv-cursor { display: inline-block; width: 3px; height: 1em; background: var(--esmeralda); margin-left: 4px; vertical-align: -2px; animation: bvBlink 1s step-end infinite; }
+    @keyframes bvBlink { 50% { opacity: 0; } }
+    .bv-accion { display: flex; gap: 10px; max-width: 470px; margin: 0 auto 16px; opacity: 0; transform: translateY(8px); animation: bvUp .6s ease forwards .9s; }
+    .bv-accion input { flex: 1; border: 1.5px solid var(--linea, #e2e8f0); border-radius: 999px; padding: 14px 20px; font-size: 16px; font-family: var(--texto); outline: none; }
+    .bv-accion input:focus { border-color: var(--esmeralda); }
+    .bv-btn { background: var(--esmeralda); color: #fff; border: 0; border-radius: 999px; padding: 0 26px; font-weight: 600; font-size: 15px; cursor: pointer; font-family: var(--texto); }
+    .bv-btn:hover { background: var(--esmeralda-osc); }
+    .bv-skip { display: inline-block; color: var(--esmeralda-osc); font-size: 14px; text-decoration: none; font-family: var(--texto); opacity: 0; animation: bvUp .6s ease forwards 1.15s; }
+    .bv-skip:hover { text-decoration: underline; }
+    @keyframes bvUp { to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 560px) { .bv-frase { font-size: 24px; min-height: 96px; } .bv-accion { flex-direction: column; } .bv-btn { padding: 12px; } }
+  </style>
   <header class="tope">
     <div class="tope-int">
       <div class="marca">
@@ -1317,6 +1349,45 @@
     document.getElementById('cerrarCarrito').addEventListener('click', cerrarCarrito);
     document.getElementById('capaCarrito').addEventListener('click', cerrarCarrito);
     document.getElementById('modalCapa').addEventListener('click', (e) => { if (e.target.id === 'modalCapa') cerrarModal(); });
+
+    // --- Pantalla de bienvenida (efecto de escritura) ---
+    var FRASES_BV = [
+      'Bienvenido a Marbit',
+      'Cómputo, electrónica y reparación',
+      'Lo que tu hogar o tu negocio necesitan',
+      '¿Qué es lo que necesitas o buscas hoy?',
+    ];
+    function sleepBV(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    async function escribirBV(el, txt) { for (var i = 0; i <= txt.length; i++) { el.textContent = txt.slice(0, i); await sleepBV(45); } }
+    async function borrarBV(el) { var t = el.textContent; for (var i = t.length; i >= 0; i--) { el.textContent = t.slice(0, i); await sleepBV(25); } }
+    async function animarBienvenida() {
+      var el = document.getElementById('bvTexto');
+      if (!el) return;
+      for (var k = 0; k < FRASES_BV.length - 1; k++) {
+        await escribirBV(el, FRASES_BV[k]);
+        await sleepBV(1100);
+        await borrarBV(el);
+        await sleepBV(220);
+      }
+      await escribirBV(el, FRASES_BV[FRASES_BV.length - 1]);
+    }
+    function entrarTienda(q) {
+      var bv = document.getElementById('bienvenida');
+      if (q && q.trim()) {
+        var inp = document.getElementById('busqueda');
+        if (inp) inp.value = q.trim();
+        estado.q = q.trim();
+        cargarCatalogo(true);
+      }
+      if (bv) { bv.classList.add('bv-cerrado'); setTimeout(function () { bv.style.display = 'none'; }, 650); }
+    }
+    (function () {
+      var f = document.getElementById('bvForm');
+      if (f) f.addEventListener('submit', function (e) { e.preventDefault(); entrarTienda(document.getElementById('bvInput').value); });
+      var sk = document.getElementById('bvSkip');
+      if (sk) sk.addEventListener('click', function (e) { e.preventDefault(); entrarTienda(); });
+      animarBienvenida();
+    })();
 
     iniciar();
   </script>
