@@ -1412,10 +1412,13 @@
 
       var esStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
       var esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      // Solo invitamos a instalar en teléfonos/tablets (no en computadoras de escritorio)
+      var esMovil = /android|iphone|ipad|ipod|iemobile|blackberry|opera mini|mobile/i.test(navigator.userAgent)
+        || (navigator.maxTouchPoints > 1 && /macintosh/i.test(navigator.userAgent)); // iPad moderno se reporta como Mac
       var descartado = false;
       try { descartado = localStorage.getItem('marbit_install_off') === '1'; } catch (e) {}
 
-      function mostrarBar() { if (bar && !esStandalone && !descartado) bar.style.display = 'flex'; }
+      function mostrarBar() { if (bar && esMovil && !esStandalone && !descartado) bar.style.display = 'flex'; }
       function ocultarBar() { if (bar) bar.style.display = 'none'; }
 
       // Android/Chrome: el navegador avisa cuando se puede instalar
